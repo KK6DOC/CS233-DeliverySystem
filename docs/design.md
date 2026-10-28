@@ -188,7 +188,7 @@ activity. Separate Java processes check terminal sessions and the packaged JAR,
 including folder paths with spaces. Offscreen UI checks run the real button
 handlers and render the panels without showing a window.
 
-The current local results are 86 backend checks, 10 terminal/JAR checks, and
+The current local results are 89 backend checks, 10 terminal/JAR checks, and
 27 desktop checks. A Windows/macOS/Linux Actions workflow is prepared in
 `.github/workflows/java.yml`. GitHub's current connection permissions do not
 allow that file to be uploaded, so a Windows runtime result is still pending.

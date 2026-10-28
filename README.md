@@ -94,7 +94,7 @@ Add `--desktop` to run the button-handler checks and generate screen previews
 without opening a window: `./test.sh --desktop` or `.\test.bat --desktop`.
 Generated test previews go in `build/previews`, so running the tests doesn't
 change the images saved in the repo.
-The local results are 86 backend checks, 10 terminal/JAR checks, and 27 desktop checks.
+The local results are 89 backend checks, 10 terminal/JAR checks, and 27 desktop checks.
 
 `./build.sh` or `.\build.bat` creates `build/app/CS233DeliverySystem.jar` and
 copies the starting menu beside it. Keep those two files together. You can run
