@@ -7,7 +7,7 @@ import javax.swing.SwingUtilities;
 public class UiPreview {
     // Renders the actual role screens using temporary demo data and no visible window.
     public static void main(String[] args) throws Exception {
-        Path output = Path.of("docs", "screenshots");
+        Path output = args.length == 0 ? Path.of("build", "previews") : Path.of(args[0]);
         Files.createDirectories(output);
         Path temporary = Files.createTempDirectory("cs233-ui-preview-");
         Exception[] failure = new Exception[1];
