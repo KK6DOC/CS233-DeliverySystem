@@ -112,8 +112,12 @@ order scans the queue, so that optional action takes O(q) for `q` waiting orders
 
 A new driver starts with an average of zero until they get a rating. Equal
 averages are resolved by username so the result is predictable. Each driver
-handles one active order at a time. Waiting orders can be cancelled; accepted
-orders cannot. An empty order or an order with more than 100 items is rejected.
+handles one active order at a time. Customers can cancel their own waiting or
+accepted orders until delivery starts. Cancelling an accepted order returns its
+driver to the available pool and assigns the oldest waiting order, if there is
+one. The cancelled order keeps its driver in the saved history. In-progress and
+delivered orders cannot be cancelled. An empty order or an order with more than
+100 items is rejected.
 
 ## Text files and file I/O
 
@@ -188,7 +192,7 @@ activity. Separate Java processes check terminal sessions and the packaged JAR,
 including folder paths with spaces. Offscreen UI checks run the real button
 handlers and render the panels without showing a window.
 
-The current local results are 89 backend checks, 10 terminal/JAR checks, and
-27 desktop checks. A Windows/macOS/Linux Actions workflow is prepared in
+The current local results are 109 backend checks, 14 terminal/JAR checks, and
+30 desktop checks. A Windows/macOS/Linux Actions workflow is prepared in
 `.github/workflows/java.yml`. GitHub's current connection permissions do not
 allow that file to be uploaded, so a Windows runtime result is still pending.

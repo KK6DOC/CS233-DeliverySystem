@@ -43,7 +43,10 @@ Everyone can change their email and password from their profile.
 ## The three dashboards
 
 - Customers can browse food, put together an order, check its status, and rate
-  the driver after delivery. An order can be cancelled while it's waiting.
+  the driver after delivery. Waiting or accepted orders can be cancelled until
+  the driver starts delivery. Select the order in **My orders**, then click
+  **Cancel order**. Cancelling an assigned order frees its driver for the next
+  waiting order.
 - Drivers see their assigned orders and mark them in progress or delivered.
   They can also see their recent ratings and average.
 - Admins can add, remove, and update menu items, view all orders, and add users.
@@ -94,7 +97,7 @@ Add `--desktop` to run the button-handler checks and generate screen previews
 without opening a window: `./test.sh --desktop` or `.\test.bat --desktop`.
 Generated test previews go in `build/previews`, so running the tests doesn't
 change the images saved in the repo.
-The local results are 89 backend checks, 10 terminal/JAR checks, and 27 desktop checks.
+The local results are 109 backend checks, 14 terminal/JAR checks, and 30 desktop checks.
 
 `./build.sh` or `.\build.bat` creates `build/app/CS233DeliverySystem.jar` and
 copies the starting menu beside it. Keep those two files together. You can run

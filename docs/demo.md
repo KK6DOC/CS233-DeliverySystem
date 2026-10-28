@@ -67,3 +67,12 @@ order. If several orders are waiting, the oldest one goes first.
 Run `./test.sh --desktop` or `.\test.bat --desktop` to check the complete flows,
 including eleven ratings replacing the oldest one. Those checks use temporary
 data and run the UI without opening a window.
+
+## Cancel an order
+
+As a customer, place an order and open **My orders**. Select its row and click
+**Cancel order**. Both waiting and accepted orders can be cancelled before the
+driver clicks **Start delivery**. The cancelled order stays in history. Its
+assigned driver becomes available and takes the oldest waiting order, if one
+is waiting. In the terminal version, use customer option 5 and enter the order
+number.

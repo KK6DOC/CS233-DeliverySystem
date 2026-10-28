@@ -54,7 +54,7 @@ public class DiagramExport {
                         "+ getItem(String): MenuItem", "+ getItems(): ArrayList<MenuItem>"});
         model.box(450, 850, 500, "Order", new String[]{"- orderNum: int", "- customer: String [username]", "- items: ArrayList<MenuItem>",
                 "- status: Status [enum]", "- driver: String [username]", "- rating: int [0 = not rated]"},
-                new String[]{"+ calculateTotalCost(): BigDecimal", "~ assignDriver(String): void", "~ startDelivery(): void",
+                new String[]{"+ calculateTotalCost(): BigDecimal", "+ canCancel(): boolean", "~ assignDriver(String): void", "~ startDelivery(): void",
                         "~ completeDelivery(): void", "~ cancel(): void", "~ rate(int): void"});
         model.box(1000, 1000, 350, "MenuItem (immutable)", new String[]{"- name: String", "- price: BigDecimal"},
                 new String[]{"+ getName(): String", "+ getPrice(): BigDecimal"});
@@ -69,7 +69,7 @@ public class DiagramExport {
         model.text(650, 1260, "stores 0..* menu items", 15, false);
         model.edge(new int[][]{{950, 1050}, {1000, 1050}}, false);
         model.text(956, 1033, "1..*", 13, false);
-        model.text(50, 1320, "Order.Status: PLACED -> ACCEPTED -> IN_PROGRESS -> DELIVERED. PLACED may also become CANCELLED.", 16, false);
+        model.text(50, 1320, "Order.Status: PLACED -> ACCEPTED -> IN_PROGRESS -> DELIVERED. PLACED or ACCEPTED can become CANCELLED.", 16, false);
         model.save("docs/current-class-model");
 
         DiagramExport app = new DiagramExport(1600, 1650, "Delivery System - application structure");

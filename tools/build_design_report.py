@@ -95,7 +95,7 @@ def order_figure():
     box(drawing, 258, 120, 210, 270, "Order", [
         "- orderNum: int", "- customer: String", "- items: ArrayList<MenuItem>", "- status: Status",
         "- driver: String", "- rating: int", "+ calculateTotalCost(): BigDecimal",
-        "~ assignDriver(String)", "~ startDelivery()", "~ completeDelivery()", "~ cancel()", "~ rate(int)",
+        "+ canCancel(): boolean", "~ assignDriver(String)", "~ startDelivery()", "~ completeDelivery()", "~ cancel()", "~ rate(int)",
     ])
     box(drawing, 0, 30, 210, 130, "MenuItem (immutable)", [
         "- name: String", "- price: BigDecimal", "+ getName(): String", "+ getPrice(): BigDecimal",
