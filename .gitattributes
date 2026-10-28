@@ -1,0 +1,8 @@
+*.java text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
+*.md text eol=lf
+*.svg text eol=lf
+*.excalidraw text eol=lf
+*.png binary
+*.pdf binary
