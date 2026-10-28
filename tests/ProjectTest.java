@@ -26,6 +26,7 @@ public class ProjectTest {
             waitingAfterRestart(temporary.resolve("waiting"));
             interruptedDriverSave(temporary.resolve("interrupted"));
             activityHistory(temporary.resolve("activity"));
+            menuNamesAfterRestart(temporary.resolve("menu names"));
             invalidFiles(temporary.resolve("invalid"));
             fileLock(temporary.resolve("lock"));
             inputValidation();
@@ -287,6 +288,24 @@ public class ProjectTest {
         try (DeliverySystem system = open(directory)) {
             system.login("customer", "customer123");
             equal(200, system.getActivity().size(), "Filtered activity history survives restart");
+        }
+    }
+
+    // Checks food names that could otherwise be mistaken for file comments or quoting.
+    private static void menuNamesAfterRestart(Path directory) throws Exception {
+        List<String> names = List.of("#1 Special", "'Chef's special'", "\"Daily special\"");
+        try (DeliverySystem system = open(directory)) {
+            system.login("admin", "admin123");
+            for (String name : names) {
+                system.addMenuItem(name, new BigDecimal("3.10"));
+            }
+        }
+        try (DeliverySystem system = open(directory)) {
+            system.login("admin", "admin123");
+            for (String name : names) {
+                check(system.getMenuItems().stream().anyMatch(item -> item.getName().equals(name)
+                        && item.getPrice().equals(new BigDecimal("3.10"))), "A quoted or comment-like food name survives restart: " + name);
+            }
         }
     }
 

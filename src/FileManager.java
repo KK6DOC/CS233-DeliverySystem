@@ -119,7 +119,7 @@ public final class FileManager implements AutoCloseable {
     public void saveMenu(Menu menu) throws IOException {
         StringBuilder text = new StringBuilder();
         for (MenuItem item : menu.getItems()) {
-            text.append(item.getName()).append(", ").append(item.getPrice()).append('\n');
+            text.append('"').append(item.getName()).append("\", ").append(item.getPrice()).append('\n');
         }
         writeFile("Menu.txt", text.toString());
     }
