@@ -1,4 +1,4 @@
-public class ActivityEntry {
+public final class ActivityEntry {
     private final String time;
     private final String role;
     private final String username;

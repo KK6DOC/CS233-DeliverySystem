@@ -1,7 +1,7 @@
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-public class MenuItem {
+public final class MenuItem {
     private final String name;
     private final BigDecimal price;
 
