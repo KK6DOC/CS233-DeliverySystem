@@ -268,7 +268,7 @@ public class DeliverySystem implements AutoCloseable {
         return result;
     }
 
-    // Cancels a customer's own order while it is waiting for a driver.
+    // Cancels a customer's order before delivery starts and frees its assigned driver.
     public void cancelOrder(int id) throws IOException {
         requireRole(Customer.class);
         Order order = ownedOrder(id, false).copy();
@@ -277,6 +277,13 @@ public class DeliverySystem implements AutoCloseable {
         files.appendOrder(order, new ArrayDeque<>());
         allOrders.put(id, order);
         ordersQueue.removeIf(waiting -> waiting.getOrderId() == id);
+        if (!order.getDriver().isEmpty()) {
+            Driver driver = (Driver) users.get(order.getDriver());
+            driver.setAvailability(true);
+            readyDrivers.offer(driver);
+            files.saveUsers(users.values(), "Driver");
+            giveOrderToDriver();
+        }
     }
 
     // Lets the assigned driver start an accepted delivery.

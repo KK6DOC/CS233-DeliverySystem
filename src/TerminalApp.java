@@ -101,7 +101,10 @@ public class TerminalApp {
                 system.rateDriver(number("Order number: "), number("Rating (1-5): "));
                 System.out.println("Rating saved.");
             }
-            case "5" -> system.cancelOrder(number("Order number: "));
+            case "5" -> {
+                system.cancelOrder(number("Order number: "));
+                System.out.println("Order cancelled.");
+            }
             case "6" -> changeProfile();
             default -> System.out.println("Choose one of the listed options.");
         }

@@ -255,13 +255,14 @@ public final class FileManager implements AutoCloseable {
         }
         boolean valid = switch (previous.getStatus()) {
             case PLACED -> next.getStatus() == Order.Status.ACCEPTED || next.getStatus() == Order.Status.CANCELLED;
-            case ACCEPTED -> next.getStatus() == Order.Status.IN_PROGRESS;
+            case ACCEPTED -> next.getStatus() == Order.Status.IN_PROGRESS || next.getStatus() == Order.Status.CANCELLED;
             case IN_PROGRESS -> next.getStatus() == Order.Status.DELIVERED;
             case DELIVERED -> previous.getRating() == 0 && next.getStatus() == Order.Status.DELIVERED
                     && next.getRating() > 0;
             case CANCELLED -> false;
         };
-        if (!valid || (!previous.getDriver().isEmpty() && !previous.getDriver().equals(next.getDriver()))) {
+        boolean assignment = previous.getStatus() == Order.Status.PLACED && next.getStatus() == Order.Status.ACCEPTED;
+        if (!valid || (!assignment && !previous.getDriver().equals(next.getDriver()))) {
             throw new IllegalArgumentException("The saved order has an invalid status change.");
         }
     }

@@ -24,6 +24,8 @@ public class ProjectTest {
             recentRatings(temporary.resolve("ratings"));
             updatedDriverPriority(temporary.resolve("priority"));
             waitingAfterRestart(temporary.resolve("waiting"));
+            acceptedCancellation(temporary.resolve("cancellation"));
+            interruptedCancellationSave(temporary.resolve("cancel interrupted"));
             interruptedDriverSave(temporary.resolve("interrupted"));
             activityHistory(temporary.resolve("activity"));
             menuNamesAfterRestart(temporary.resolve("menu names"));
@@ -63,8 +65,7 @@ public class ProjectTest {
             Order cancelled = system.placeOrder(List.of("Drink"));
             system.cancelOrder(cancelled.getOrderId());
             Order fifth = system.placeOrder(List.of("Hamburger"));
-            fails(() -> system.cancelOrder(first.getOrderId()), IllegalArgumentException.class,
-                    "Accepted orders cannot be cancelled");
+            check(first.canCancel(), "An accepted order can be cancelled before delivery starts");
             fails(() -> system.rateDriver(first.getOrderId(), 5), IllegalArgumentException.class,
                     "Undelivered orders cannot be rated");
             fails(() -> system.startDelivery(first.getOrderId()), IllegalArgumentException.class,
@@ -255,6 +256,96 @@ public class ProjectTest {
             system.login("admin", "admin123");
             system.register("Driver", "driver3", "driver3123", "driver3@example.com");
             equal("driver3", find(system.getAllOrders(), 4).getDriver(), "A newly added driver takes the next waiting order");
+        }
+    }
+
+    // Checks accepted cancellations, driver reuse, FIFO order, ownership, and restart behavior.
+    private static void acceptedCancellation(Path directory) throws Exception {
+        try (DeliverySystem system = open(directory)) {
+            system.register("Customer", "other", "other123", "other@example.com");
+            system.login("customer", "customer123");
+            for (int i = 0; i < 4; i++) {
+                system.placeOrder(List.of("Drink"));
+            }
+            system.logout();
+            system.login("other", "other123");
+            fails(() -> system.cancelOrder(1), IllegalArgumentException.class,
+                    "Another customer cannot cancel an accepted order");
+            system.logout();
+            system.login("driver1", "driver123");
+            fails(() -> system.cancelOrder(1), IllegalArgumentException.class,
+                    "A driver cannot use customer cancellation");
+            system.logout();
+            system.login("customer", "customer123");
+            system.cancelOrder(1);
+            equal(Order.Status.CANCELLED, find(system.getMyOrders(), 1).getStatus(),
+                    "An assigned order can be cancelled before delivery starts");
+            equal("driver1", find(system.getMyOrders(), 1).getDriver(),
+                    "Cancelled orders keep the assigned driver in their history");
+            equal("driver1", find(system.getMyOrders(), 3).getDriver(),
+                    "The released driver takes the oldest waiting order");
+            equal(Order.Status.PLACED, find(system.getMyOrders(), 4).getStatus(),
+                    "Cancellation does not assign the same driver twice");
+            fails(() -> system.cancelOrder(1), IllegalArgumentException.class,
+                    "An order cannot be cancelled twice");
+            fails(() -> system.rateDriver(1, 5), IllegalArgumentException.class,
+                    "Cancelled orders cannot be rated");
+            system.logout();
+            system.login("driver1", "driver123");
+            fails(() -> system.startDelivery(1), IllegalArgumentException.class,
+                    "Drivers cannot start cancelled orders");
+            system.startDelivery(3);
+            system.logout();
+            system.login("customer", "customer123");
+            fails(() -> system.cancelOrder(3), IllegalArgumentException.class,
+                    "Customers cannot cancel a delivery already in progress");
+            system.logout();
+            system.login("driver1", "driver123");
+            system.completeDelivery(3);
+            system.logout();
+            system.login("customer", "customer123");
+            fails(() -> system.cancelOrder(3), IllegalArgumentException.class,
+                    "Customers cannot cancel a delivered order");
+            system.cancelOrder(2);
+            system.logout();
+            system.login("admin", "admin123");
+            check(system.getDrivers().stream().filter(driver -> driver.getUsername().equals("driver2"))
+                    .allMatch(Driver::getAvailability), "Cancelling with no waiting orders leaves the driver available");
+        }
+        try (DeliverySystem restored = open(directory)) {
+            restored.login("admin", "admin123");
+            equal(Order.Status.CANCELLED, find(restored.getAllOrders(), 1).getStatus(),
+                    "An accepted cancellation survives restart");
+            equal("driver1", find(restored.getAllOrders(), 1).getDriver(),
+                    "The cancelled order's driver history survives restart");
+            equal("driver1", find(restored.getAllOrders(), 4).getDriver(),
+                    "Reassigned waiting orders survive restart");
+            check(restored.getDrivers().stream().filter(driver -> driver.getUsername().equals("driver1"))
+                    .noneMatch(Driver::getAvailability), "A driver remains busy with the next assigned order");
+            restored.logout();
+            restored.login("customer", "customer123");
+            equal("driver2", restored.placeOrder(List.of("Fries")).getDriver(),
+                    "The cancelled order's free driver can take another order after restart");
+        }
+    }
+
+    // Checks that a saved cancellation frees the driver even if the driver-file save fails.
+    private static void interruptedCancellationSave(Path directory) throws Exception {
+        try (DeliverySystem system = open(directory)) {
+            system.login("customer", "customer123");
+            system.placeOrder(List.of("Drink"));
+            Files.move(directory.resolve("drivers.txt"), directory.resolve("drivers.saved"));
+            Files.createDirectory(directory.resolve("drivers.txt"));
+            fails(() -> system.cancelOrder(1), IOException.class, "A cancellation driver-file failure is reported");
+        }
+        Files.delete(directory.resolve("drivers.txt"));
+        Files.move(directory.resolve("drivers.saved"), directory.resolve("drivers.txt"));
+        try (DeliverySystem restored = open(directory)) {
+            restored.login("customer", "customer123");
+            equal(Order.Status.CANCELLED, find(restored.getMyOrders(), 1).getStatus(),
+                    "The cancellation append survives a later driver save failure");
+            equal("driver1", restored.placeOrder(List.of("Drink")).getDriver(),
+                    "Log replay frees the cancelled order's driver despite a stale driver file");
         }
     }
 

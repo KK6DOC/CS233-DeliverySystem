@@ -64,6 +64,11 @@ public class DesktopFlowTest {
         check(system.getMyOrders().size() == 1, "The checkout button creates an order");
         check(table(app).getRowCount() == 1, "Checkout opens the customer's order history");
         check(table(app).getColumnCount() == 6, "Customer history leaves out the redundant customer column");
+        check(!button(app, "Cancel order").isEnabled(), "Cancellation needs a selected order");
+        table(app).setRowSelectionInterval(0, 0);
+        check(button(app, "Cancel order").isEnabled(), "An assigned order enables cancellation before delivery starts");
+        table(app).clearSelection();
+        check(!button(app, "Cancel order").isEnabled(), "Clearing the order selection disables cancellation");
         button(app, "Activity").doClick();
         check(table(app).getRowCount() >= 5, "The customer activity page shows real request and save events");
         button(app, "Log out").doClick();
@@ -88,7 +93,7 @@ public class DesktopFlowTest {
         button(app, "My orders").doClick();
         table(app).setRowSelectionInterval(0, 0);
         check(button(app, "Rate delivery").isEnabled(), "A delivered order enables the rating action");
-        check(!button(app, "Cancel waiting order").isEnabled(), "Delivered orders cannot be cancelled");
+        check(!button(app, "Cancel order").isEnabled(), "Delivered orders cannot be cancelled");
         button(app, "Log out").doClick();
         signIn(app, "admin", "admin123");
         check(system.getCurrentUser() instanceof Admin, "Admins get the all-orders dashboard");

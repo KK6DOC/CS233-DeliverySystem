@@ -27,6 +27,15 @@ public class TerminalFlowTest {
                     temporary.resolve("restart.txt"));
             check(restart.contains("DELIVERED") && restart.contains("rating: 5"), "A fresh process restores the completed order and rating");
 
+            Path cancellationData = temporary.resolve("cancel data");
+            String cancellation = session(launch, cancellationData, Path.of("."),
+                    "1\ncustomer\ncustomer123\n2\nDrink\n5\n1\n3\n0\n0\n", temporary.resolve("cancel.txt"));
+            check(cancellation.contains("Order cancelled.") && cancellation.contains("CANCELLED"),
+                    "The CLI cancels an accepted order and shows confirmation");
+            String cancellationRestart = session(launch, cancellationData, Path.of("."),
+                    "1\ncustomer\ncustomer123\n3\n0\n0\n", temporary.resolve("cancel-restart.txt"));
+            check(cancellationRestart.contains("CANCELLED"), "A fresh CLI process restores the cancelled order");
+
             Path packaged = Files.createDirectories(temporary.resolve("packaged app"));
             Path jar = packaged.resolve("CS233DeliverySystem.jar");
             int result = java.util.spi.ToolProvider.findFirst("jar").orElseThrow().run(System.out, System.err,

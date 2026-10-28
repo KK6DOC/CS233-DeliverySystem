@@ -497,17 +497,19 @@ public final class DeliveryApp extends JFrame {
         } else if (!admin) {
             JPanel actions = actions();
             JButton first = button(driver ? "Start delivery" : "Rate delivery", GREEN, Color.WHITE);
-            JButton second = button(driver ? "Mark delivered" : "Cancel waiting order", Color.WHITE, GREEN);
+            JButton second = button(driver ? "Mark delivered" : "Cancel order", Color.WHITE, GREEN);
             first.setEnabled(false);
             second.setEnabled(false);
             table.getSelectionModel().addListSelectionListener(event -> {
                 int row = table.getSelectedRow();
+                first.setEnabled(false);
+                second.setEnabled(false);
                 if (row >= 0) {
                     Order order = orders.get(table.convertRowIndexToModel(row));
                     first.setEnabled(driver ? order.getStatus() == Order.Status.ACCEPTED
                             : order.getStatus() == Order.Status.DELIVERED && order.getRating() == 0);
                     second.setEnabled(driver ? order.getStatus() == Order.Status.IN_PROGRESS
-                            : order.getStatus() == Order.Status.PLACED);
+                            : order.canCancel());
                 }
             });
             first.addActionListener(event -> attempt(() -> {
@@ -551,7 +553,8 @@ public final class DeliveryApp extends JFrame {
             actions.add(second);
             bottom.add(actions);
             bottom.add(Box.createVerticalStrut(10));
-            bottom.add(label("Select an order to see its available actions.", 12, false, MUTED));
+            bottom.add(label(driver ? "Select an order to see its available actions."
+                    : "Select an order. You can cancel until delivery starts.", 12, false, MUTED));
         }
         JButton details = button("View order details", Color.WHITE, GREEN);
         details.setAlignmentX(Component.LEFT_ALIGNMENT);

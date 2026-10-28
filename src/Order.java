@@ -26,7 +26,8 @@ public class Order {
             throw new IllegalArgumentException("The order's saved status or rating is not valid.");
         }
         boolean needsDriver = status == Status.ACCEPTED || status == Status.IN_PROGRESS || status == Status.DELIVERED;
-        if (needsDriver == driver.isEmpty() || (rating > 0 && status != Status.DELIVERED)) {
+        if ((needsDriver && driver.isEmpty()) || (status == Status.PLACED && !driver.isEmpty())
+                || (rating > 0 && status != Status.DELIVERED)) {
             throw new IllegalArgumentException("The order's driver does not match its status.");
         }
         this.orderNum = orderNum;
@@ -103,9 +104,16 @@ public class Order {
         status = Status.DELIVERED;
     }
 
-    // Cancels an order only while it is still waiting for a driver.
+    // Checks whether the customer can cancel before delivery starts.
+    public boolean canCancel() {
+        return status == Status.PLACED || status == Status.ACCEPTED;
+    }
+
+    // Cancels a waiting or accepted order and keeps its driver in the history.
     void cancel() {
-        requireStatus(Status.PLACED);
+        if (!canCancel()) {
+            throw new IllegalArgumentException("Only waiting or accepted orders can be cancelled before delivery starts.");
+        }
         status = Status.CANCELLED;
     }
 
