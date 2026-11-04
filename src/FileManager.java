@@ -1,5 +1,4 @@
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
@@ -107,7 +106,7 @@ public final class FileManager implements AutoCloseable {
                         || (name.startsWith("\"") && name.endsWith("\"")))) {
                     name = name.substring(1, name.length() - 1);
                 }
-                menu.addMenuItem(new MenuItem(name, new BigDecimal(line.substring(comma + 1).trim())));
+                menu.addMenuItem(new MenuItem(name, NumberUtil.parsePrice(line.substring(comma + 1))));
             } catch (RuntimeException ex) {
                 throw badRecord(path, lineNumber, ex);
             }
@@ -119,7 +118,7 @@ public final class FileManager implements AutoCloseable {
     public void saveMenu(Menu menu) throws IOException {
         StringBuilder text = new StringBuilder();
         for (MenuItem item : menu.getItems()) {
-            text.append('"').append(item.getName()).append("\", ").append(item.getPrice()).append('\n');
+            text.append('"').append(item.getName()).append("\", ").append(NumberUtil.formatMoney(item.getPrice())).append('\n');
         }
         writeFile("Menu.txt", text.toString());
     }
@@ -185,7 +184,7 @@ public final class FileManager implements AutoCloseable {
     // Replays the transaction log and keeps each order's latest saved version.
     public LinkedHashMap<Integer, Order> loadOrders(LinkedHashMap<String, User> users) throws IOException {
         LinkedHashMap<Integer, Order> orders = new LinkedHashMap<>();
-        LinkedHashMap<String, Deque<Integer>> ratingSnapshots = new LinkedHashMap<>();
+        LinkedHashMap<String, Deque<Float>> ratingSnapshots = new LinkedHashMap<>();
         Path path = directory.resolve("orders.txt");
         int lineNumber = 0;
         int highestId = 0;
@@ -202,10 +201,10 @@ public final class FileManager implements AutoCloseable {
                 }
                 ArrayList<MenuItem> items = new ArrayList<>();
                 for (int i = 7; i < parts.length; i += 2) {
-                    items.add(new MenuItem(parts[i], new BigDecimal(parts[i + 1])));
+                    items.add(new MenuItem(parts[i], NumberUtil.parsePrice(parts[i + 1])));
                 }
                 Order order = new Order(Integer.parseInt(parts[0]), parts[1], items,
-                        Order.Status.valueOf(parts[2]), parts[3], Integer.parseInt(parts[4]));
+                        Order.Status.valueOf(parts[2]), parts[3], Float.parseFloat(parts[4]));
                 if (!(users.get(order.getCustomer()) instanceof Customer)
                         || (!order.getDriver().isEmpty() && !(users.get(order.getDriver()) instanceof Driver))) {
                     throw new IllegalArgumentException("The order refers to a missing customer or driver.");
@@ -219,7 +218,7 @@ public final class FileManager implements AutoCloseable {
                 } else {
                     validateTransition(previous, order);
                 }
-                Deque<Integer> savedRatings = parseRatings(parts[5]);
+                Deque<Float> savedRatings = parseRatings(parts[5]);
                 if (order.getRating() > 0) {
                     if (savedRatings.isEmpty() || savedRatings.getLast() != order.getRating()) {
                         throw new IllegalArgumentException("The order's rating does not match the driver's ratings.");
@@ -249,7 +248,7 @@ public final class FileManager implements AutoCloseable {
         for (int i = 0; i < previous.getItems().size(); i++) {
             MenuItem first = previous.getItems().get(i);
             MenuItem second = next.getItems().get(i);
-            if (!first.getName().equals(second.getName()) || !first.getPrice().equals(second.getPrice())) {
+            if (!first.getName().equals(second.getName()) || Float.compare(first.getPrice(), second.getPrice()) != 0) {
                 throw new IllegalArgumentException("An existing order's item or price changed.");
             }
         }
@@ -268,28 +267,28 @@ public final class FileManager implements AutoCloseable {
     }
 
     // Appends a full order snapshot each time an order is placed or updated.
-    public void appendOrder(Order order, Deque<Integer> ratings) throws IOException {
+    public void appendOrder(Order order, Deque<Float> ratings) throws IOException {
         StringBuilder text = new StringBuilder();
         text.append(order.getOrderId()).append('|').append(order.getCustomer()).append('|')
                 .append(order.getStatus()).append('|').append(order.getDriver()).append('|')
                 .append(order.getRating()).append('|').append(formatRatings(ratings)).append('|')
                 .append(order.getItems().size());
         for (MenuItem item : order.getItems()) {
-            text.append('|').append(item.getName()).append('|').append(item.getPrice());
+            text.append('|').append(item.getName()).append('|').append(NumberUtil.formatMoney(item.getPrice()));
         }
         text.append('\n');
         Files.writeString(directory.resolve("orders.txt"), text, StandardCharsets.UTF_8,
                 StandardOpenOption.APPEND);
         log("SAVE", "Appended order #" + order.getOrderId() + " to orders.txt: " + order.getStatus()
-                + ", total $" + order.calculateTotalCost() + ".");
+                + ", total $" + NumberUtil.formatMoney(order.calculateTotalCost()) + ".");
     }
 
     // Reads a driver's saved ratings in the order they were received.
-    private Deque<Integer> parseRatings(String text) {
-        Deque<Integer> ratings = new ArrayDeque<>();
+    private Deque<Float> parseRatings(String text) {
+        Deque<Float> ratings = new ArrayDeque<>();
         if (!text.isEmpty()) {
             for (String value : text.split(",", -1)) {
-                int rating = Integer.parseInt(value);
+                float rating = NumberUtil.parseRating(value);
                 if (rating < 1 || rating > 5 || ratings.size() == 10) {
                     throw new IllegalArgumentException("Saved ratings must be 1 to 5, with at most ten ratings.");
                 }
@@ -300,9 +299,9 @@ public final class FileManager implements AutoCloseable {
     }
 
     // Joins ratings without changing their oldest-to-newest order.
-    private String formatRatings(Deque<Integer> ratings) {
+    private String formatRatings(Deque<Float> ratings) {
         StringBuilder text = new StringBuilder();
-        for (int rating : ratings) {
+        for (float rating : ratings) {
             if (!text.isEmpty()) {
                 text.append(',');
             }

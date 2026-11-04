@@ -23,6 +23,7 @@ public class DesktopFlowTest {
                 DeliveryApp app = new DeliveryApp(system);
                 try {
                     runFlow(app, system);
+                    floatCartFlow(app, system);
                 } catch (Throwable ex) {
                     failure[0] = ex;
                 } finally {
@@ -106,6 +107,22 @@ public class DesktopFlowTest {
         check(button(app, "Create an account").isEnabled(), "Admins can reach role-based account creation");
         button(app, "Activity").doClick();
         check(table(app).getRowCount() > 20, "Admin activity includes all roles and startup events");
+    }
+
+    // Checks that a full cart and checkout use the same float-money calculation.
+    private static void floatCartFlow(DeliveryApp app, DeliverySystem system) throws Exception {
+        system.addMenuItem("A float bundle", 99.99f);
+        button(app, "Log out").doClick();
+        signIn(app, "customer", "customer123");
+        for (int i = 0; i < 100; i++) {
+            button(app, "+ Add to order").doClick(0);
+        }
+        check(components(app.getContentPane()).stream().anyMatch(component -> component instanceof javax.swing.JLabel label
+                && label.getText().equals("Total  $9999.00")), "The cart displays the correct float total for 100 items");
+        button(app, "Place order").doClick();
+        check(system.getMyOrders().stream().anyMatch(order -> order.getItems().size() == 100
+                && NumberUtil.formatMoney(order.calculateTotalCost()).equals("9999.00")),
+                "Checkout keeps the total shown in the cart");
     }
 
     // Signs in through the actual login button handler.

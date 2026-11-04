@@ -1,5 +1,4 @@
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -29,6 +28,7 @@ public class ProjectTest {
             interruptedDriverSave(temporary.resolve("interrupted"));
             activityHistory(temporary.resolve("activity"));
             menuNamesAfterRestart(temporary.resolve("menu names"));
+            floatValuesAfterRestart(temporary.resolve("float values"));
             invalidFiles(temporary.resolve("invalid"));
             fileLock(temporary.resolve("lock"));
             inputValidation();
@@ -53,10 +53,10 @@ public class ProjectTest {
             system.login("CUSTOMER", "customer123");
             check(system.getCurrentUser() instanceof Customer, "Customer role is loaded from the account");
             check(system.getMenuItems().size() == 3, "Menu configuration loads all three foods");
-            fails(() -> system.addMenuItem("Freebie", BigDecimal.ZERO), IllegalArgumentException.class,
+            fails(() -> system.addMenuItem("Freebie", 0.0f), IllegalArgumentException.class,
                     "Customers cannot manage the menu");
             Order first = system.placeOrder(List.of("Hamburger", "Fries", "Drink", "Drink"));
-            equal(new BigDecimal("17.96"), first.calculateTotalCost(), "Order total includes repeated items");
+            equal(17.96f, first.calculateTotalCost(), "Order total includes repeated items");
             equal("driver1", first.getDriver(), "Equal ratings use a deterministic username tie-break");
             Order second = system.placeOrder(List.of("Drink"));
             equal("driver2", second.getDriver(), "Busy drivers are not assigned twice");
@@ -120,11 +120,11 @@ public class ProjectTest {
             equal("driver1", seventh.getDriver(), "Rating a busy driver does not make them available");
             system.logout();
             system.login("admin", "admin123");
-            system.updateMenu("Hamburger", new BigDecimal("12.50"));
-            equal(new BigDecimal("17.96"), system.getAllOrders().get(0).calculateTotalCost(),
+            system.updateMenu("Hamburger", 12.50f);
+            equal(17.96f, system.getAllOrders().get(0).calculateTotalCost(),
                     "Menu changes do not rewrite old order totals");
-            system.addMenuItem("Onion rings", new BigDecimal("4.50"));
-            fails(() -> system.addMenuItem("ONION RINGS", BigDecimal.ONE), IllegalArgumentException.class,
+            system.addMenuItem("Onion rings", 4.50f);
+            fails(() -> system.addMenuItem("ONION RINGS", 1.0f), IllegalArgumentException.class,
                     "Menu names cannot be duplicated with different capitalization");
             system.removeMenuItem("Drink");
             system.register("Admin", "helper", "helper123", "helper@example.com");
@@ -141,7 +141,7 @@ public class ProjectTest {
             equal("new-admin@example.com", restored.getCurrentUser().getEmail(), "Profile changes survive restart");
             equal(7, restored.getAllOrders().size(), "All orders survive restart");
             equal(Order.Status.CANCELLED, find(restored.getAllOrders(), 4).getStatus(), "Cancelled status survives restart");
-            equal(new BigDecimal("12.50"), restored.getMenuItems().stream()
+            equal(12.50f, restored.getMenuItems().stream()
                     .filter(item -> item.getName().equals("Hamburger")).findFirst().orElseThrow().getPrice(),
                     "Admin price changes survive restart");
             check(restored.getMenuItems().stream().noneMatch(item -> item.getName().equals("Drink")),
@@ -156,7 +156,7 @@ public class ProjectTest {
             check(((Driver) restored.getCurrentUser()).getAvailability(), "New unassigned drivers persist as available");
             restored.logout();
             restored.login("driver2", "driver123");
-            equal(List.of(5, 1), new ArrayList<>(((Driver) restored.getCurrentUser()).getRatings()),
+            equal(List.of(5.0f, 1.0f), new ArrayList<>(((Driver) restored.getCurrentUser()).getRatings()),
                     "Ratings restore in the order they were received");
             restored.startDelivery(6);
         }
@@ -195,7 +195,7 @@ public class ProjectTest {
             system.login("driver1", "driver123");
             Driver driver = (Driver) system.getCurrentUser();
             equal(10, driver.getRatings().size(), "Only ten ratings are kept");
-            equal(5.0, driver.getAverageRating(), "The 11th rating replaces the oldest rating in the average");
+            equal(5.0f, driver.getAverageRating(), "The 11th rating replaces the oldest rating in the average");
             driver.getRatings().clear();
             equal(10, driver.getRatings().size(), "Rating lists cannot be changed through getters");
         }
@@ -203,7 +203,7 @@ public class ProjectTest {
             system.login("driver1", "driver123");
             Driver driver = (Driver) system.getCurrentUser();
             equal(10, driver.getRatings().size(), "The rating limit survives restart");
-            equal(5.0, driver.getAverageRating(), "The recalculated average survives restart");
+            equal(5.0f, driver.getAverageRating(), "The recalculated average survives restart");
         }
     }
 
@@ -388,15 +388,61 @@ public class ProjectTest {
         try (DeliverySystem system = open(directory)) {
             system.login("admin", "admin123");
             for (String name : names) {
-                system.addMenuItem(name, new BigDecimal("3.10"));
+                system.addMenuItem(name, 3.10f);
             }
         }
         try (DeliverySystem system = open(directory)) {
             system.login("admin", "admin123");
             for (String name : names) {
                 check(system.getMenuItems().stream().anyMatch(item -> item.getName().equals(name)
-                        && item.getPrice().equals(new BigDecimal("3.10"))), "A quoted or comment-like food name survives restart: " + name);
+                        && Float.compare(item.getPrice(), 3.10f) == 0), "A quoted or comment-like food name survives restart: " + name);
             }
+        }
+    }
+
+    // Checks float prices, decimal ratings, driver priority, and persisted numeric values.
+    private static void floatValuesAfterRestart(Path directory) throws Exception {
+        equal(4.5f, NumberUtil.parseRating("4.5"), "Decimal ratings are accepted");
+        equal("0.30", NumberUtil.formatMoney(0.1f + 0.2f), "Float money is displayed with two decimal places");
+        equal(9999.0f, new Order(1, "customer", java.util.Collections.nCopies(100,
+                new MenuItem("Bundle", 99.99f))).calculateTotalCost(),
+                "A hundred float-priced items do not accumulate a one-cent total error");
+        for (float invalid : new float[]{Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY}) {
+            fails(() -> new MenuItem("Invalid", invalid), IllegalArgumentException.class, "Non-finite prices are rejected");
+            fails(() -> NumberUtil.requireRating(invalid), IllegalArgumentException.class, "Non-finite ratings are rejected");
+        }
+        fails(() -> new Order(1, "customer", List.of(new MenuItem("Food", 1.0f)),
+                Order.Status.DELIVERED, "driver1", 0.5f), IllegalArgumentException.class,
+                "A saved nonzero rating must be at least one");
+        Order overflowing = new Order(1, "customer", List.of(new MenuItem("Large", Float.MAX_VALUE),
+                new MenuItem("Large", Float.MAX_VALUE)));
+        fails(overflowing::calculateTotalCost, IllegalArgumentException.class, "An overflowing float total is rejected");
+        try (DeliverySystem system = open(directory)) {
+            system.login("admin", "admin123");
+            system.addMenuItem("Small", 0.10f);
+            system.logout();
+            system.login("customer", "customer123");
+            Order order = system.placeOrder(List.of("Small", "Small", "Small"));
+            equal(0.30f, order.calculateTotalCost(), "Repeated float prices produce a rounded checkout total");
+            system.logout();
+            system.login("driver1", "driver123");
+            system.startDelivery(order.getOrderId());
+            system.completeDelivery(order.getOrderId());
+            system.logout();
+            system.login("customer", "customer123");
+            system.rateDriver(order.getOrderId(), 4.5f);
+            equal(4.5f, system.getMyOrders().get(0).getRating(), "The order stores a float rating");
+        }
+        try (DeliverySystem restored = open(directory)) {
+            restored.login("driver1", "driver123");
+            Driver driver = (Driver) restored.getCurrentUser();
+            equal(List.of(4.5f), new ArrayList<>(driver.getRatings()), "Decimal ratings survive restart");
+            equal(4.5f, driver.getAverageRating(), "A driver's average stays a float after restart");
+            restored.logout();
+            restored.login("customer", "customer123");
+            equal(0.30f, restored.getMyOrders().get(0).calculateTotalCost(), "Float checkout prices survive restart");
+            equal("driver1", restored.placeOrder(List.of("Small")).getDriver(),
+                    "A decimal rating determines the next highest-rated driver");
         }
     }
 
@@ -428,10 +474,10 @@ public class ProjectTest {
 
     // Checks values that could break prices, saved fields, and order sizes.
     private static void inputValidation() throws Exception {
-        fails(() -> new MenuItem("Bad|name", BigDecimal.ONE), IllegalArgumentException.class, "Saved field separators are rejected");
-        fails(() -> new MenuItem("Bad\nname\nagain", BigDecimal.ONE), IllegalArgumentException.class, "Multiline names cannot corrupt saved files");
-        fails(() -> new MenuItem("Food", new BigDecimal("1.001")), IllegalArgumentException.class, "Fractions of cents are rejected");
-        fails(() -> new MenuItem("Food", new BigDecimal("-1")), IllegalArgumentException.class, "Negative prices are rejected");
+        fails(() -> new MenuItem("Bad|name", 1.0f), IllegalArgumentException.class, "Saved field separators are rejected");
+        fails(() -> new MenuItem("Bad\nname\nagain", 1.0f), IllegalArgumentException.class, "Multiline names cannot corrupt saved files");
+        fails(() -> new MenuItem("Food", 1.001f), IllegalArgumentException.class, "Fractions of cents are rejected");
+        fails(() -> new MenuItem("Food", -1f), IllegalArgumentException.class, "Negative prices are rejected");
         fails(() -> new Order(1, "customer", List.of()), IllegalArgumentException.class, "Empty orders are rejected");
         fails(() -> User.normalizeUsername("bad|user"), IllegalArgumentException.class, "Invalid usernames are rejected");
     }

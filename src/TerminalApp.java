@@ -1,5 +1,4 @@
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -66,8 +65,8 @@ public class TerminalApp {
     private void adminOption(String option) throws IOException {
         switch (option) {
             case "1" -> showMenu();
-            case "2" -> system.addMenuItem(read("Food name: "), new BigDecimal(read("Price: ")));
-            case "3" -> system.updateMenu(read("Food name: "), new BigDecimal(read("New price: ")));
+            case "2" -> system.addMenuItem(read("Food name: "), NumberUtil.parsePrice(read("Price: ")));
+            case "3" -> system.updateMenu(read("Food name: "), NumberUtil.parsePrice(read("New price: ")));
             case "4" -> system.removeMenuItem(read("Food name: "));
             case "5" -> showOrders(system.getAllOrders());
             case "6" -> addUser(read("Role (Admin, Customer, Driver): "));
@@ -94,11 +93,11 @@ public class TerminalApp {
                     items.add(name.trim());
                 }
                 Order order = system.placeOrder(items);
-                System.out.println("Order #" + order.getOrderId() + " placed. Total: $" + order.calculateTotalCost());
+                System.out.println("Order #" + order.getOrderId() + " placed. Total: $" + NumberUtil.formatMoney(order.calculateTotalCost()));
             }
             case "3" -> showOrders(system.getMyOrders());
             case "4" -> {
-                system.rateDriver(number("Order number: "), number("Rating (1-5): "));
+                system.rateDriver(number("Order number: "), NumberUtil.parseRating(read("Rating (1-5, decimals allowed): ")));
                 System.out.println("Rating saved.");
             }
             case "5" -> {
@@ -129,7 +128,7 @@ public class TerminalApp {
     private void showMenu() {
         System.out.println("\nMenu");
         for (MenuItem item : system.getMenuItems()) {
-            System.out.println(item.getName() + " - $" + item.getPrice());
+            System.out.println(item.getName() + " - $" + NumberUtil.formatMoney(item.getPrice()));
         }
     }
 
@@ -147,7 +146,7 @@ public class TerminalApp {
                 items.append(item.getName());
             }
             System.out.printf("#%d | %s | %s | %s | $%s | driver: %s | rating: %s%n",
-                    order.getOrderId(), order.getCustomer(), items, order.getStatus(), order.calculateTotalCost(),
+                    order.getOrderId(), order.getCustomer(), items, order.getStatus(), NumberUtil.formatMoney(order.calculateTotalCost()),
                     order.getDriver().isEmpty() ? "waiting" : order.getDriver(),
                     order.getRating() == 0 ? "not rated" : order.getRating());
         }

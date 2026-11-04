@@ -17,15 +17,15 @@ public class TerminalFlowTest {
             List<String> launch = List.of("-cp", Path.of(System.getProperty("java.class.path")).toAbsolutePath().toString(), "Main");
             String commands = String.join("\n", "1", "customer", "customer123", "2", "Hamburger,Fries,Drink", "0",
                     "1", "driver1", "driver123", "2", "1", "3", "1", "0", "1", "customer", "customer123",
-                    "4", "1", "2.5", "4", "1", "5", "3", "9", "0", "0", "");
+                    "4", "1", "bad", "4", "1", "4.5", "3", "9", "0", "0", "");
             String output = session(launch, data, Path.of("."), commands, temporary.resolve("first.txt"));
             check(output.contains("Order #1 placed. Total: $15.47"), "Terminal checkout saves the correct total");
-            check(output.contains("Enter a whole number."), "Invalid rating input returns to the menu");
-            check(output.contains("DELIVERED") && output.contains("rating: 5"), "Terminal delivery and rating actions complete the order");
+            check(output.contains("Enter a rating from 1 to 5"), "Invalid rating input returns to the menu");
+            check(output.contains("DELIVERED") && output.contains("rating: 4.5"), "Terminal delivery and decimal rating actions complete the order");
             check(output.contains("Appended order #1 to orders.txt"), "The terminal Activity option displays actual saves");
             String restart = session(launch, data, Path.of("."), "1\ncustomer\ncustomer123\n3\n0\n0\n",
                     temporary.resolve("restart.txt"));
-            check(restart.contains("DELIVERED") && restart.contains("rating: 5"), "A fresh process restores the completed order and rating");
+            check(restart.contains("DELIVERED") && restart.contains("rating: 4.5"), "A fresh process restores the completed order and decimal rating");
 
             Path cancellationData = temporary.resolve("cancel data");
             String cancellation = session(launch, cancellationData, Path.of("."),

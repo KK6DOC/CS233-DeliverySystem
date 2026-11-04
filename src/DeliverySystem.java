@@ -1,5 +1,4 @@
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -148,7 +147,7 @@ public class DeliverySystem implements AutoCloseable {
     }
 
     // Adds an item after checking that an admin is logged in.
-    public void addMenuItem(String name, BigDecimal price) throws IOException {
+    public void addMenuItem(String name, float price) throws IOException {
         requireRole(Admin.class);
         Menu proposed = copyMenu();
         proposed.addMenuItem(new MenuItem(name, price));
@@ -158,7 +157,7 @@ public class DeliverySystem implements AutoCloseable {
     }
 
     // Changes a menu price without changing any existing orders.
-    public void updateMenu(String name, BigDecimal price) throws IOException {
+    public void updateMenu(String name, float price) throws IOException {
         requireRole(Admin.class);
         Menu proposed = copyMenu();
         proposed.updateMenu(new MenuItem(name, price));
@@ -200,7 +199,7 @@ public class DeliverySystem implements AutoCloseable {
             items.add(menu.getItem(name));
         }
         Order order = new Order(nextOrderNum, currentUser.getUsername(), items);
-        files.log("REQUEST", "placeOrder: items=" + foodNames + ", total $" + order.calculateTotalCost() + ".");
+        files.log("REQUEST", "placeOrder: items=" + foodNames + ", total $" + NumberUtil.formatMoney(order.calculateTotalCost()) + ".");
         files.appendOrder(order, new ArrayDeque<>());
         nextOrderNum++;
         allOrders.put(order.getOrderId(), order);
@@ -312,12 +311,12 @@ public class DeliverySystem implements AutoCloseable {
     }
 
     // Saves one rating from the customer who placed a delivered order.
-    public void rateDriver(int id, int rating) throws IOException {
+    public void rateDriver(int id, float rating) throws IOException {
         requireRole(Customer.class);
         Order order = ownedOrder(id, false).copy();
         order.rate(rating);
         Driver driver = (Driver) users.get(order.getDriver());
-        Deque<Integer> ratings = driver.getRatings();
+        Deque<Float> ratings = driver.getRatings();
         if (ratings.size() == 10) {
             ratings.removeFirst();
         }

@@ -8,7 +8,6 @@ import java.awt.GridLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -269,7 +268,7 @@ public final class DeliveryApp extends JFrame {
             card.add(Box.createVerticalStrut(14));
             card.add(label(item.getName(), 20, true, TEXT));
             card.add(Box.createVerticalStrut(8));
-            card.add(label("$" + item.getPrice(), 20, false, GREEN));
+            card.add(label("$" + NumberUtil.formatMoney(item.getPrice()), 20, false, GREEN));
             card.add(Box.createVerticalStrut(18));
             JButton add = button("+ Add to order", GREEN, Color.WHITE);
             add.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -309,13 +308,18 @@ public final class DeliveryApp extends JFrame {
         heading.add(label(cartSize() + " items", 13, false, MUTED));
         card.add(heading, BorderLayout.NORTH);
         String[][] rows = new String[cart.size()][3];
-        BigDecimal total = new BigDecimal("0.00");
+        ArrayList<MenuItem> checkoutItems = new ArrayList<>();
         ArrayList<String> names = new ArrayList<>(cart.keySet());
         for (int i = 0; i < names.size(); i++) {
             String name = names.get(i);
-            BigDecimal price = menuPrice(name).multiply(BigDecimal.valueOf(cart.get(name)));
-            total = total.add(price);
-            rows[i] = new String[]{name, String.valueOf(cart.get(name)), "$" + price};
+            MenuItem item = new MenuItem(name, menuPrice(name));
+            ArrayList<MenuItem> lineItems = new ArrayList<>();
+            for (int count = 0; count < cart.get(name); count++) {
+                lineItems.add(item);
+                checkoutItems.add(item);
+            }
+            float price = NumberUtil.totalCost(lineItems);
+            rows[i] = new String[]{name, String.valueOf(cart.get(name)), "$" + NumberUtil.formatMoney(price)};
         }
         JTable table = table(rows, new String[]{"Item", "Qty", "Price"});
         if (cart.isEmpty()) {
@@ -346,7 +350,7 @@ public final class DeliveryApp extends JFrame {
         }));
         actions.add(remove);
         actions.add(Box.createVerticalStrut(20));
-        actions.add(label("Total  $" + total, 23, true, TEXT));
+        actions.add(label("Total  $" + NumberUtil.formatMoney(NumberUtil.totalCost(checkoutItems)), 23, true, TEXT));
         actions.add(Box.createVerticalStrut(18));
         JButton place = button("Place order", ORANGE, TEXT);
         place.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -361,7 +365,7 @@ public final class DeliveryApp extends JFrame {
             }
             Order order = system.placeOrder(items);
             cart.clear();
-            notice = "Order #" + order.getOrderId() + " placed. Total: $" + order.calculateTotalCost();
+            notice = "Order #" + order.getOrderId() + " placed. Total: $" + NumberUtil.formatMoney(order.calculateTotalCost());
             showDashboard("My orders");
         }));
         actions.add(place);
@@ -379,7 +383,7 @@ public final class DeliveryApp extends JFrame {
     }
 
     // Looks up a food's current menu price for the cart preview.
-    private BigDecimal menuPrice(String name) {
+    private float menuPrice(String name) {
         for (MenuItem item : system.getMenuItems()) {
             if (item.getName().equals(name)) {
                 return item.getPrice();
@@ -395,7 +399,7 @@ public final class DeliveryApp extends JFrame {
         ArrayList<MenuItem> items = system.getMenuItems();
         String[][] rows = new String[items.size()][2];
         for (int i = 0; i < items.size(); i++) {
-            rows[i] = new String[]{items.get(i).getName(), "$" + items.get(i).getPrice()};
+            rows[i] = new String[]{items.get(i).getName(), "$" + NumberUtil.formatMoney(items.get(i).getPrice())};
         }
         JTable table = table(rows, new String[]{"Food", "Price"});
         page.add(scroll(table), BorderLayout.CENTER);
@@ -431,15 +435,15 @@ public final class DeliveryApp extends JFrame {
         if (existing != null) {
             name.setText(existing.getName());
             name.setEditable(false);
-            price.setText(existing.getPrice().toString());
+            price.setText(NumberUtil.formatMoney(existing.getPrice()));
         }
         addField(form, "Food name", name);
         addField(form, "Price", price);
         if (JOptionPane.showConfirmDialog(this, form, existing == null ? "Add item" : "Change price",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.OK_OPTION) {
-            BigDecimal amount;
+            float amount;
             try {
-                amount = new BigDecimal(price.getText().trim());
+                amount = NumberUtil.parsePrice(price.getText());
             } catch (NumberFormatException ex) {
                 throw new IllegalArgumentException("Enter a price such as 8.99.");
             }
@@ -465,7 +469,7 @@ public final class DeliveryApp extends JFrame {
             Order order = orders.get(i);
             rows[i] = new String[]{"#" + order.getOrderId(), order.getCustomer(), itemNames(order.getItems()),
                     order.getStatus().toString().toLowerCase(java.util.Locale.ROOT).replace('_', ' '),
-                    "$" + order.calculateTotalCost(), order.getDriver().isEmpty() ? "Waiting" : order.getDriver(),
+                    "$" + NumberUtil.formatMoney(order.calculateTotalCost()), order.getDriver().isEmpty() ? "Waiting" : order.getDriver(),
                     order.getRating() == 0 ? "-" : order.getRating() + "/5"};
         }
         JTable table = table(rows, new String[]{"Order", "Customer", "Items", "Status", "Total", "Driver", "Rating"});
@@ -518,18 +522,15 @@ public final class DeliveryApp extends JFrame {
                     system.startDelivery(order.getOrderId());
                     notice = "Order #" + order.getOrderId() + " is on its way.";
                 } else {
-                    JSpinner rating = new JSpinner(new SpinnerNumberModel(5, 1, 5, 1));
+                    JSpinner rating = new JSpinner(new SpinnerNumberModel(Float.valueOf(5.0f), Float.valueOf(1.0f), Float.valueOf(5.0f), Float.valueOf(0.5f)));
                     JPanel form = vertical(Color.WHITE, 12);
                     addField(form, "Rate " + order.getDriver() + " from 1 to 5", rating);
                     if (JOptionPane.showConfirmDialog(this, form, "Rate delivery", JOptionPane.OK_CANCEL_OPTION,
                             JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) {
                         return;
                     }
-                    String value = ((JSpinner.DefaultEditor) rating.getEditor()).getTextField().getText().trim();
-                    if (!value.matches("[1-5]")) {
-                        throw new IllegalArgumentException("Enter a whole number from 1 to 5.");
-                    }
-                    system.rateDriver(order.getOrderId(), Integer.parseInt(value));
+                    rating.commitEdit();
+                    system.rateDriver(order.getOrderId(), ((Number) rating.getValue()).floatValue());
                     notice = "Thanks! Your rating was saved.";
                 }
                 showDashboard(section);
@@ -563,7 +564,7 @@ public final class DeliveryApp extends JFrame {
             Order order = orders.get(selectedRow(table));
             javax.swing.JTextArea text = new javax.swing.JTextArea("Order #" + order.getOrderId()
                     + "\nCustomer: " + order.getCustomer() + "\nItems: " + itemNames(order.getItems())
-                    + "\nTotal: $" + order.calculateTotalCost() + "\nStatus: " + order.getStatus()
+                    + "\nTotal: $" + NumberUtil.formatMoney(order.calculateTotalCost()) + "\nStatus: " + order.getStatus()
                     + "\nDriver: " + (order.getDriver().isEmpty() ? "Waiting for a driver" : order.getDriver())
                     + "\nRating: " + (order.getRating() == 0 ? "Not rated" : order.getRating() + "/5"), 8, 38);
             text.setEditable(false);
@@ -744,7 +745,7 @@ public final class DeliveryApp extends JFrame {
         } catch (IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Check your input", JOptionPane.WARNING_MESSAGE);
         } catch (java.text.ParseException ex) {
-            JOptionPane.showMessageDialog(this, "Enter a whole number from 1 to 5.", "Check your rating", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Enter a rating from 1 to 5, such as 4.5.", "Check your rating", JOptionPane.WARNING_MESSAGE);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Could not save: " + ex.getMessage()
                     + "\nThe app will close. Fix the file problem before reopening it.", "File error", JOptionPane.ERROR_MESSAGE);

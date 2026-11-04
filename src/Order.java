@@ -1,4 +1,3 @@
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,7 +9,7 @@ public class Order {
     private final ArrayList<MenuItem> items;
     private Status status;
     private String driver;
-    private int rating;
+    private float rating;
 
     // Creates a waiting order with the prices that were shown at checkout.
     public Order(int orderNum, String customer, List<MenuItem> items) {
@@ -18,11 +17,12 @@ public class Order {
     }
 
     // Restores a saved order or makes a copy for the UI.
-    Order(int orderNum, String customer, List<MenuItem> items, Status status, String driver, int rating) {
+    Order(int orderNum, String customer, List<MenuItem> items, Status status, String driver, float rating) {
         if (orderNum < 1 || items == null || items.isEmpty() || items.size() > 100) {
             throw new IllegalArgumentException("An order needs 1 to 100 items and a valid order number.");
         }
-        if (status == null || driver == null || rating < 0 || rating > 5) {
+        if (status == null || driver == null || !Float.isFinite(rating)
+                || (rating != 0 && (rating < 1 || rating > 5))) {
             throw new IllegalArgumentException("The order's saved status or rating is not valid.");
         }
         boolean needsDriver = status == Status.ACCEPTED || status == Status.IN_PROGRESS || status == Status.DELIVERED;
@@ -67,17 +67,13 @@ public class Order {
     }
 
     // Returns zero until the customer rates the delivery.
-    public int getRating() {
+    public float getRating() {
         return rating;
     }
 
-    // Adds prices using decimals so cents do not get rounded incorrectly.
-    public BigDecimal calculateTotalCost() {
-        BigDecimal total = new BigDecimal("0.00");
-        for (MenuItem item : items) {
-            total = total.add(item.getPrice());
-        }
-        return total;
+    // Totals the float checkout prices with the same calculation used by the cart.
+    public float calculateTotalCost() {
+        return NumberUtil.totalCost(items);
     }
 
     // Copies the order before making a change that needs to be saved.
@@ -117,15 +113,13 @@ public class Order {
         status = Status.CANCELLED;
     }
 
-    // Records one whole-number rating after delivery.
-    void rate(int rating) {
+    // Records one float rating after delivery.
+    void rate(float rating) {
         requireStatus(Status.DELIVERED);
         if (this.rating != 0) {
             throw new IllegalArgumentException("This delivery has already been rated.");
         }
-        if (rating < 1 || rating > 5) {
-            throw new IllegalArgumentException("Ratings must be a whole number from 1 to 5.");
-        }
+        NumberUtil.requireRating(rating);
         this.rating = rating;
     }
 
