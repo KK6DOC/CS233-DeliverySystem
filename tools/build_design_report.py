@@ -74,8 +74,8 @@ def user_figure():
     box(drawing, 0, 100, 140, 95, "Admin extends User", ["+ getRole(): String", "+ viewOptions(): void"])
     box(drawing, 164, 100, 140, 95, "Customer extends User", ["+ getRole(): String", "+ viewOptions(): void"])
     box(drawing, 328, 40, 140, 200, "Driver extends User", [
-        "- availability: boolean", "- ratings: Deque<Integer>", "- averageRating: double",
-        "~ addRating(int)", "~ restoreRatings(Deque)", "+ compareTo(Driver): int",
+        "- availability: boolean", "- ratings: Deque<Float>", "- averageRating: float",
+        "~ addRating(float)", "~ restoreRatings(Deque)", "+ compareTo(Driver): int",
         "+ getRole(): String", "+ viewOptions(): void",
     ])
     arrow(drawing, [(70, 195), (70, 255), (234, 255), (234, 285)], True)
@@ -94,11 +94,11 @@ def order_figure():
     ])
     box(drawing, 258, 120, 210, 270, "Order", [
         "- orderNum: int", "- customer: String", "- items: ArrayList<MenuItem>", "- status: Status",
-        "- driver: String", "- rating: int", "+ calculateTotalCost(): BigDecimal",
-        "+ canCancel(): boolean", "~ assignDriver(String)", "~ startDelivery()", "~ completeDelivery()", "~ cancel()", "~ rate(int)",
+        "- driver: String", "- rating: float", "+ calculateTotalCost(): float",
+        "+ canCancel(): boolean", "~ assignDriver(String)", "~ startDelivery()", "~ completeDelivery()", "~ cancel()", "~ rate(float)",
     ])
     box(drawing, 0, 30, 210, 130, "MenuItem (immutable)", [
-        "- name: String", "- price: BigDecimal", "+ getName(): String", "+ getPrice(): BigDecimal",
+        "- name: String", "- price: float", "+ getName(): String", "+ getPrice(): float",
     ])
     arrow(drawing, [(105, 250), (105, 160)])
     drawing.add(String(115, 200, "0..* menu items", fontName="Times-Roman", fontSize=10))
@@ -121,7 +121,7 @@ def app_figure():
     ])
     box(drawing, 128, 135, 212, 150, "DeliverySystem", [
         "- users: LinkedHashMap", "- allOrders: LinkedHashMap", "- ordersQueue: Queue<Order>",
-        "- readyDrivers: PriorityQueue", "+ placeOrder(List<String>)", "+ rateDriver(int,int)", "+ getActivity()",
+        "- readyDrivers: PriorityQueue", "+ placeOrder(List<String>)", "+ rateDriver(int,float)", "+ getActivity()",
     ])
     box(drawing, 160, 15, 160, 85, "FileManager", [
         "+ loadMenu(), loadUsers()", "+ loadOrders(users)", "+ appendOrder(...)", "+ log(event,details)",

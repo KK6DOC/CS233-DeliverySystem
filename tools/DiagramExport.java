@@ -46,18 +46,18 @@ public class DiagramExport {
                 new String[]{"+ getRole(): String", "+ viewOptions(): void"});
         model.box(450, 440, 350, "Customer extends User", new String[]{},
                 new String[]{"+ getRole(): String", "+ viewOptions(): void"});
-        model.box(850, 440, 500, "Driver extends User", new String[]{"- availability: boolean", "- ratings: Deque<Integer>", "- averageRating: double"},
-                new String[]{"~ addRating(int): void", "~ restoreRatings(Deque): void", "~ setAvailability(boolean): void",
+        model.box(850, 440, 500, "Driver extends User", new String[]{"- availability: boolean", "- ratings: Deque<Float>", "- averageRating: float"},
+                new String[]{"~ addRating(float): void", "~ restoreRatings(Deque): void", "~ setAvailability(boolean): void",
                         "- calculateAvgRating(): void", "+ compareTo(Driver): int"});
         model.box(50, 850, 350, "Menu", new String[]{"- menu: HashMap<String,MenuItem>"},
                 new String[]{"+ addMenuItem(MenuItem): void", "+ updateMenu(MenuItem): void", "+ removeMenuItem(String): void",
                         "+ getItem(String): MenuItem", "+ getItems(): ArrayList<MenuItem>"});
         model.box(450, 850, 500, "Order", new String[]{"- orderNum: int", "- customer: String [username]", "- items: ArrayList<MenuItem>",
-                "- status: Status [enum]", "- driver: String [username]", "- rating: int [0 = not rated]"},
-                new String[]{"+ calculateTotalCost(): BigDecimal", "+ canCancel(): boolean", "~ assignDriver(String): void", "~ startDelivery(): void",
-                        "~ completeDelivery(): void", "~ cancel(): void", "~ rate(int): void"});
-        model.box(1000, 1000, 350, "MenuItem (immutable)", new String[]{"- name: String", "- price: BigDecimal"},
-                new String[]{"+ getName(): String", "+ getPrice(): BigDecimal"});
+                "- status: Status [enum]", "- driver: String [username]", "- rating: float [0 = not rated]"},
+                new String[]{"+ calculateTotalCost(): float", "+ canCancel(): boolean", "~ assignDriver(String): void", "~ startDelivery(): void",
+                        "~ completeDelivery(): void", "~ cancel(): void", "~ rate(float): void"});
+        model.box(1000, 1000, 350, "MenuItem (immutable)", new String[]{"- name: String", "- price: float"},
+                new String[]{"+ getName(): String", "+ getPrice(): float"});
         model.edge(new int[][]{{225, 440}, {225, 390}, {700, 390}, {700, 343}}, true);
         model.edge(new int[][]{{625, 440}, {625, 390}, {700, 390}, {700, 343}}, true);
         model.edge(new int[][]{{1100, 440}, {1100, 390}, {700, 390}, {700, 343}}, true);
@@ -81,8 +81,13 @@ public class DiagramExport {
         app.box(550, 650, 500, "DeliverySystem", new String[]{"- files: FileManager", "- menu: Menu", "- users: LinkedHashMap<String,User>",
                 "- allOrders: LinkedHashMap<Integer,Order>", "- ordersQueue: Queue<Order>", "- readyDrivers: PriorityQueue<Driver>", "- currentUser: User"},
                 new String[]{"+ login(String,String): User", "+ register(...): void", "+ placeOrder(List<String>): Order",
-                        "- giveOrderToDriver(): void", "+ startDelivery(int): void", "+ completeDelivery(int): void", "+ rateDriver(int,int): void",
+                        "- giveOrderToDriver(): void", "+ startDelivery(int): void", "+ completeDelivery(int): void", "+ rateDriver(int,float): void",
                         "+ getActivity(): ArrayList<ActivityEntry>"});
+        app.box(1120, 720, 440, "NumberUtil", new String[]{},
+                new String[]{"+ parsePrice(String): float", "+ requirePrice(float): float", "+ roundMoney(float): float",
+                        "+ totalCost(List<MenuItem>): float", "+ formatMoney(float): String", "+ parseRating(String): float", "+ requireRating(float): void"});
+        app.edge(new int[][]{{1050, 850}, {1120, 850}}, false);
+        app.text(1060, 830, "checks", 13, false);
         app.box(550, 1190, 500, "FileManager implements AutoCloseable", new String[]{"- directory: Path", "- lock: FileLock", "- actor: String", "- actorRole: String"},
                 new String[]{"+ loadMenu(): Menu", "+ loadUsers(): LinkedHashMap", "+ loadOrders(users): LinkedHashMap", "+ saveUsers(users,role): void",
                         "+ appendOrder(order,ratings): void", "+ log(event,details): void", "+ loadActivity(User): ArrayList<ActivityEntry>"});

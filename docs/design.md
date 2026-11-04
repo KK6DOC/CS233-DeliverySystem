@@ -23,7 +23,7 @@ The old drawing is kept separately so we can see what changed.
 and `Driver` extend it and choose their own role and terminal options. `Driver`
 also keeps availability, recent ratings, and the average rating.
 
-`Menu` looks up food by name. Each `MenuItem` has a name and a decimal price.
+`Menu` looks up food by name. Each `MenuItem` has a name and a float price.
 `Order` keeps the customer, item prices from checkout, status, assigned driver,
 and the customer's rating. The customer and driver references are usernames;
 `DeliverySystem` checks them against the saved user objects.
@@ -32,7 +32,8 @@ and the customer's rating. The customer and driver references are usernames;
 assignment, delivery updates, and ratings. Keeping those checks here means a
 button cannot bypass an ownership or status rule.
 
-`FileManager` reads and writes the text files. `PasswordUtil` handles password
+`NumberUtil` checks float prices and ratings and formats money to two decimal
+places. `FileManager` reads and writes the text files. `PasswordUtil` handles password
 hashing. `ActivityEntry` is one saved activity event. `Main` opens either
 `DeliveryApp`, which is the Swing UI, or `TerminalApp` when `--cli` is passed.
 
@@ -79,7 +80,7 @@ rating and then username.
 | --- | --- | --- |
 | Waiting orders | `Queue<Order>` backed by `ArrayDeque` | Adds at the back and accepts from the front, preserving FIFO order |
 | Available drivers | `PriorityQueue<Driver>` | Keeps the highest-rated available driver at the head |
-| Recent ratings | `ArrayDeque<Integer>` | Removes the oldest rating from the front and adds the newest at the back |
+| Recent ratings | `ArrayDeque<Float>` | Removes the oldest rating from the front and adds the newest at the back |
 | Menu lookup | `HashMap<String, MenuItem>` | Finds an item by its normalized name without searching the whole menu |
 | Users and order history | `LinkedHashMap` | Looks up usernames or order numbers while keeping insertion order |
 | Items inside an order | `ArrayList<MenuItem>` | Keeps the selected items, including repeated items for quantities |
@@ -107,7 +108,7 @@ order scans the queue, so that optional action takes O(q) for `q` waiting orders
    available driver. Save the accepted order and mark that driver busy.
 5. Only that driver can move the order from accepted to in progress, then delivered.
 6. Finishing a delivery returns the driver to the pool and tries the next waiting order.
-7. The order's customer can give it one whole-number rating from 1 to 5 after delivery.
+7. The order's customer can give it one float rating from 1 to 5 after delivery, including decimals such as 4.5.
 8. Keep the last ten driver ratings and update the average and assignment priority.
 
 A new driver starts with an average of zero until they get a rating. Equal
@@ -130,6 +131,14 @@ The working data folder has these files:
 | `drivers.txt` | `username\|passwordHash\|email\|available\|ratings` |
 | `orders.txt` | `id\|customer\|status\|driver\|rating\|driverRatings\|itemCount\|name\|price\|...` |
 | `activity.txt` | `UTC time\|role\|username\|event\|details` |
+
+Prices, totals, ratings, and rating averages use `float`. The saved text uses
+decimal numbers; old whole-number ratings still load through `Float.parseFloat`.
+`NumberUtil` rejects non-finite numbers and prices with fractions of a cent.
+The cart and orders use the same total calculation, adding rounded float cents
+before converting back to dollars. Money is formatted with two decimal places
+for display and saving. Binary floats are approximate;
+rounding does not make them exact decimal values, especially for large amounts.
 
 These are schemas, not sample records to paste into the files. Driver ratings
 are comma-separated and stored oldest first. A rating of zero on an order
@@ -192,7 +201,7 @@ activity. Separate Java processes check terminal sessions and the packaged JAR,
 including folder paths with spaces. Offscreen UI checks run the real button
 handlers and render the panels without showing a window.
 
-The current local results are 109 backend checks, 14 terminal/JAR checks, and
-30 desktop checks. A Windows/macOS/Linux Actions workflow is prepared in
+The current local results are 126 backend checks, 14 terminal/JAR checks, and
+32 desktop checks. A Windows/macOS/Linux Actions workflow is prepared in
 `.github/workflows/java.yml`. GitHub's current connection permissions do not
 allow that file to be uploaded, so a Windows runtime result is still pending.

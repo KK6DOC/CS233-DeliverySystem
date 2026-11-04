@@ -70,7 +70,11 @@ pool, and the next waiting order gets assigned automatically. We only keep their
 last ten ratings. When an eleventh rating comes in, the oldest one gets dropped.
 
 Orders keep their checkout prices, so changing the menu doesn't change an old
-order's total. Prices use `BigDecimal` to keep cents exact.
+order's total. Prices, totals, individual ratings, and rating averages use
+`float`. Decimal ratings such as 4.5 are allowed. The cart and checkout share a calculation
+that adds rounded float cents, and money is displayed with two decimal places. A float is approximate, so this is the
+type we use for the class requirement rather than a guarantee of exact decimal
+arithmetic.
 
 ## Saved files
 
@@ -97,7 +101,27 @@ Add `--desktop` to run the button-handler checks and generate screen previews
 without opening a window: `./test.sh --desktop` or `.\test.bat --desktop`.
 Generated test previews go in `build/previews`, so running the tests doesn't
 change the images saved in the repo.
-The local results are 109 backend checks, 14 terminal/JAR checks, and 30 desktop checks.
+The local results are 126 backend checks, 14 terminal/JAR checks, and 32 desktop checks.
+
+## Running and debugging in VS Code
+
+Open the `CS233-DeliverySystem` folder, then use the Run and Debug sidebar.
+Pick **Delivery System - Desktop** or **Delivery System - CLI** and press F5.
+The CLI takes input in the integrated terminal. These debug configurations use
+`data/debug-desktop` and `data/debug-cli`, so they can run beside the normal app.
+
+The launch configurations need **Language Support for Java by Red Hat** and
+**Debugger for Java by Microsoft**. They are listed in the workspace extension
+recommendations. On the current Mac, the **CS233 Java** VS Code profile contains
+these extensions. Open the project with that profile when debugging.
+
+If you have the parent project folder open, the local `CS233 Project.code-workspace`
+file opens the correct repository folder. Running just `Driver.java` or another
+model file will not start the app; `Main.main()` is the entry point.
+
+[Run/debug troubleshooting](docs/debugging.md) explains the reproduced errors.
+[Function-by-function guide](docs/function-guide.md) explains what each method
+does and why we use it.
 
 `./build.sh` or `.\build.bat` creates `build/app/CS233DeliverySystem.jar` and
 copies the starting menu beside it. Keep those two files together. You can run
