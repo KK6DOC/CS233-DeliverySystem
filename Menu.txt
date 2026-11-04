@@ -1,2 +1,3 @@
-'Burgor', 19.99
-'Fries' , 3.99
+Hamburger, 8.99
+Fries, 3.99
+Drink, 2.49

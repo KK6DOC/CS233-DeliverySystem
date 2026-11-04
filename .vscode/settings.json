@@ -1,0 +1,6 @@
+{
+    "java.project.sourcePaths": ["src", "tests", "tools"],
+    "java.project.outputPath": "build/vscode",
+    "java.project.referencedLibraries": [],
+    "java.debug.settings.console": "integratedTerminal"
+}
