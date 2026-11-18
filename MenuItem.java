@@ -20,6 +20,6 @@ public class MenuItem {
     public double getPrice() { return price; }
     public String getDescription() { return description; }
     public void setPrice(double price) { this.price = price; }
-    public void setDescription(double description) { this.description = description; }
+    public void setDescription(String description) { this.description = description; }
 
 }

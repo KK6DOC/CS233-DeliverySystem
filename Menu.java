@@ -1,4 +1,3 @@
-import java.awt.MenuItem;
 import java.util.HashMap;
 
 public class Menu {
@@ -30,6 +29,18 @@ public class Menu {
             System.out.println("TEST: Updated ");
         } else {
             System.out.println("TEST: Not Found ");
+        }
+    }
+
+    public void viewMenuItems() {
+        if (menu.isEmpty()) {
+            System.out.println("Menu Empty.");
+            return;
+        }
+        System.out.println("Resturant Menu:");
+        for (Map.Entry<String, MenuItem> entry : menu.entrySet()) {
+            MenuItem item = entry.getValue();
+            System.out.println(item.getName() + " " + item.getPrice() + " " + item.getDescription());
         }
     }
 }

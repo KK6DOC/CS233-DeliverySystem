@@ -1,2 +1,3 @@
-'Burgor', 19.99
-'Fries' , 3.99
+foodName|price|description
+Burgor|19.99|Basic Burgor
+Fried|5.99|A very small ammount of fries, like 2
