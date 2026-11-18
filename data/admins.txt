@@ -1,2 +1,0 @@
-# username|password hash|email
-admin|pbkdf2$120000$heX5zjqdWmaYMWi2LEfoAg==$6WVggm4MdiKKaNmMsW94KgHcxlI7fq7tJHgwMHfIPyk=|admin@example.com

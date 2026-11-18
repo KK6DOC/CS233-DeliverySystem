@@ -4,7 +4,6 @@ import java.util.*;
 
 public class FileManager {
 
-    // Change Below to Change file names to match.
     private String menuFile = "Menu.txt";
     private String userFile = "UserInfo.txt";
     private String orderFile = "Orders.txt"; 
