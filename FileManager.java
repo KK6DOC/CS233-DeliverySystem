@@ -1,4 +1,3 @@
-import java.awt.Menu;
 import java.io.*;
 import java.util.*;
 
@@ -8,19 +7,19 @@ public class FileManager {
     private String userFile = "UserInfo.txt";
     private String orderFile = "Orders.txt"; 
 
-    public FileManager {
+    public FileManager(){
     }
 
     public void intializeMenu(Menu menu){
         File file = new File(menuFile);
         if (file.exists()){
-            try (BufferedReader reader = new BufferedReader(Reader(file))){
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))){
                 String line;
                 while ((line = reader.readLine()) != null){
-                    String[] item = line.split("|");
+                    String[] item = line.split("\\|");
                     menu.addMenuItem(item[0],Double.parseDouble(item[1]),item[2]);
                 }
-                System.out.println("TEST: Menu loaded ");
+                System.out.println("INFO: Menu loaded ");
 
             } catch (IOException e) {
                 System.out.println("ERROR: Menu.txt BORK " + e.getMessage());
@@ -37,13 +36,13 @@ public class FileManager {
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split("|");
+                String[] parts = line.split("\\|");
                     String un = parts[0];
                     String pw = parts[1];
                     String em = parts[2];
                     String rl = parts[3];
 
-                    if (un.equals(username) && ps.equals(password)) {
+                    if (un.equals(username) && pw.equals(password)) {
                         if (rl.equals("Admin")) {
                             return new Admin(un, pw, em);
                         }

@@ -1,4 +1,5 @@
 import java.util.HashMap;
+import java.util.Map;
 
 public class Menu {
     
@@ -10,14 +11,14 @@ public class Menu {
 
     public void addMenuItem(String foodName, double price, String description) {
         menu.put(foodName, new MenuItem(foodName, price, description));
-        System.out.println("TEST: Added ");
+        System.out.println("INFO: Added " + foodName);
     }
     
-    public void removeMenuItem(String foodname){
-        if (menu.remove(foodname) != null) { 
-            System.out.println("TEST: Removed ");    
+    public void removeMenuItem(String foodName){
+        if (menu.remove(foodName) != null) { 
+            System.out.println("INFO: Removed " + foodName);    
         } else {
-            System.out.println("TEST: Not Found ");    
+            System.out.println("INFO: Not Found ");    
         }
     }
     
@@ -26,10 +27,23 @@ public class Menu {
         if (item != null){
             item.setPrice(price);
             item.setDescription(description);
-            System.out.println("TEST: Updated ");
+            System.out.println("INFO: Updated " + foodName);
         } else {
-            System.out.println("TEST: Not Found ");
+            System.out.println("INFO: Not Found ");
         }
+    }
+
+    public double getItemPrice(String foodName) {
+        MenuItem item = menu.get(foodName);
+        if (item != null){
+            return item.getPrice();
+        } else {
+            return 0.0;
+        }
+    }
+
+    public MenuItem getMenuItem(String foodName) {
+        return menu.get(foodName);
     }
 
     public void viewMenuItems() {

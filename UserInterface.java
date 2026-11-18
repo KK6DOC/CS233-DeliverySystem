@@ -18,7 +18,7 @@ public class UserInterface {
         System.out.println("Password: ");
         String password = scnr.nextLine();
 
-        // Now we Write the Authentication Here
+        return null;
     }
 
 
