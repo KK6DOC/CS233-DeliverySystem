@@ -1,0 +1,3 @@
+# username|password hash|email|available|ratings (oldest first)
+driver1|pbkdf2$120000$7x+v7lyURV6QmdZfHBpg5Q==$BNmcsY26W+I2zkn+BUxYjpP+qUz6JeO6No3iVoOE0jQ=|driver1@example.com|true|5.0
+driver2|pbkdf2$120000$y3GFdMENf1XZnUiahN74hA==$dboydgEFIcQoq6YJVYxND0kubyIDEpxqZwI/Cv4wAfU=|driver2@example.com|true|

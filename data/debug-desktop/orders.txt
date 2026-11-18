@@ -1,0 +1,6 @@
+# id|customer|status|driver|rating|driver ratings|item count|name|price...
+1|customer|PLACED||0.0||8|Fries|3.99|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49
+1|customer|ACCEPTED|driver1|0.0||8|Fries|3.99|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49
+1|customer|IN_PROGRESS|driver1|0.0||8|Fries|3.99|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49
+1|customer|DELIVERED|driver1|0.0||8|Fries|3.99|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49
+1|customer|DELIVERED|driver1|5.0|5.0|8|Fries|3.99|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49|Drink|2.49

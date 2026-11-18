@@ -1,0 +1,2 @@
+# username|password hash|email
+customer|pbkdf2$120000$4d7YwWjF8mmrNjZ0WAvh1w==$5iOgYQEQkdHzOL542WYaFWQvFuFjKY8ZtKM8eThhfTc=|customer@example.com
