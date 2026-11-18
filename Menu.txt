@@ -1,2 +1,2 @@
 Burgor|5.0|BasicBurgor
-Fried|5.99|A very small ammount of fries, like 2
+Fries|5.99|A very small ammount of fries, like 2

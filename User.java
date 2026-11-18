@@ -15,6 +15,7 @@ public abstract class User {
     }
 
     public void logout() {
+        // TODO: Create a functionoing logout method.
         System.out.println("Logged Out");
     }
 
@@ -24,5 +25,5 @@ public abstract class User {
     public void setUsername(String username) { this.username = username; }
     public void setPassword(String password) { this.password = password; }
     public void setEmail(String email) { this.email = email; }
-    
+
 }

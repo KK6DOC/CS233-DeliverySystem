@@ -10,7 +10,7 @@ public class FileManager {
     public FileManager(){
     }
 
-    public void intializeMenu(Menu menu){
+    public void initializeMenu(Menu menu){
         File file = new File(menuFile);
         if (file.exists()){
             try (BufferedReader reader = new BufferedReader(new FileReader(file))){
@@ -62,5 +62,37 @@ public class FileManager {
         }
         System.out.println("ERROR: Couldn't Login");
         return null;
+    }
+
+    public void initalizeDeliverySystem(DeliverySystem deliverySystem){
+        File file = new File(orderFile);
+        if (file.exists()){
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))){
+                String line;
+                while ((line = reader.readLine()) != null){
+                    String[] item = line.split("\\|");
+
+                    ArrayList<String> itemName = new ArrayList<>();
+                    for(int i = 4; i < item.length; i = i + 2){
+                        itemName.add(item[i]);
+
+                    }
+
+                    ArrayList<Double> itemCost = new ArrayList<>();
+                    for(int i = 5; i < item.length; i = i + 2){
+                        itemCost.add(Double.parseDouble(item[i]));
+                    }
+
+                    deliverySystem.addOrder(Integer.parseInt(item[0]), item[1], item[2], item[3], itemName, itemCost);
+                }
+                System.out.println("INFO: Orders loaded ");
+
+            } catch (IOException e) {
+                System.out.println("ERROR: Orders.txt BORK " + e.getMessage());
+            }
+        } else {
+            System.out.println("ERROR: No orders file ");
+        }
+        return;
     }
 }

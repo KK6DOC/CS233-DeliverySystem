@@ -1,0 +1,3 @@
+Admin|Admin|Admin@z.com|Admin
+Driver|Driver|Driver@z.com|Driver
+Customer|Customer|Customer@z.com|Customer
