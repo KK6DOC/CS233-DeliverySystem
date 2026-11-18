@@ -1,2 +1,3 @@
 Burgor|5.0|BasicBurgor
 Fries|5.99|A very small ammount of fries, like 2
+Animal Fries|5.99|Animal Shaped Fries
