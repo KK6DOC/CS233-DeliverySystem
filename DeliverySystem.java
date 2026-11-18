@@ -21,7 +21,7 @@ public class DeliverySystem {
         Order order = new Order(orderNum, customer, driverName, status, foodNames, foodCost);
         
         allOrders.add(order);
-        if(order.getStatus() == "Pending"){
+        if(order.getStatus().equals("Pending")){
             ordersQueue.add(order);
         }
     }
