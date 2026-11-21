@@ -4,9 +4,10 @@ import java.util.*;
 public class FileManager {
 
     private String menuFile = "Menu.txt";
-    private String userFile = "UserInfo.txt";
+    private String userFile = "UserCredentials.txt";
     private String orderFile = "Orders.txt"; 
-
+    private String ratingsFile = "Ratings.txt"; 
+    
     public FileManager(){
     }
 
@@ -73,17 +74,17 @@ public class FileManager {
                     String[] item = line.split("\\|");
 
                     ArrayList<String> itemName = new ArrayList<>();
-                    for(int i = 4; i < item.length; i = i + 2){
+                    for(int i = 5; i < item.length; i = i + 2){
                         itemName.add(item[i]);
 
                     }
 
                     ArrayList<Double> itemCost = new ArrayList<>();
-                    for(int i = 5; i < item.length; i = i + 2){
+                    for(int i = 6; i < item.length; i = i + 2){
                         itemCost.add(Double.parseDouble(item[i]));
                     }
 
-                    deliverySystem.addOrder(Integer.parseInt(item[0]), item[1], item[2], item[3], itemName, itemCost);
+                    deliverySystem.addOrder(Integer.parseInt(item[0]), item[1], item[2], item[3], Double.parseDouble(item[4]), itemName, itemCost);
                 }
                 System.out.println("INFO: Orders loaded ");
 

@@ -1,1 +1,1 @@
-0|James|None|Pending|Burgor|12.99|Fries|5.99|Apple|2.99|Soda|4.99
+0|James|None|Pending|0.0|Burgor|12.99|Fries|5.99|Apple|2.99|Soda|4.99
